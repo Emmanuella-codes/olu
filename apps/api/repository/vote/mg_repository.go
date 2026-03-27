@@ -94,18 +94,18 @@ func (r *mgRepository) RecordVote(ctx context.Context, vote models.Vote) error {
 	defer tx.Rollback(ctx)
 
 	if _, err := tx.Exec(ctx, `
-		INSERT INTO votes (candidate_id, voter_hash, channel, created_at)
-		VALUES ($1, $2, $3, NOW())
-	`, vote.CandidateID, vote.VoterHash, vote.Channel); err != nil {
+		INSERT INTO votes (id, candidate_id, voter_hash, channel, created_at)
+		VALUES ($1, $2, $3, $4, NOW())
+	`, vote.ID, vote.CandidateID, vote.VoterHash, vote.Channel); err != nil {
 		return err
 	}
 
-	return nil
+	return tx.Commit(ctx)
 }
 
 func (r *mgRepository) GetVoteTally(ctx context.Context) ([]models.TallyRow, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT candidate_id, code, name, party, COUNT(*) AS vote_count
+		SELECT c.id, c.code, c.name, c.party, COUNT(v.candidate_id) AS vote_count
 		FROM candidates c
 		LEFT JOIN votes v ON v.candidate_id = c.id
 		WHERE c.is_active = TRUE

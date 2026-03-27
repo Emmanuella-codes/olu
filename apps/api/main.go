@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	stdlog "log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/emmanuella-codes/olu/cache"
 	"github.com/emmanuella-codes/olu/config"
 	"github.com/emmanuella-codes/olu/db"
+	"github.com/emmanuella-codes/olu/repository"
+	"github.com/emmanuella-codes/olu/server"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -34,4 +38,17 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to connect to database")
 	}
 	defer pool.Close()
+
+	rdb, err := cache.NewRedis(cfg.RedisURL)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to connect to redis")
+	}
+	defer func() {
+		if err := rdb.Close(); err != nil {
+			log.Error().Err(err).Msg("failed to close redis connection")
+		}
+	}()
+
+	repository.InitRepository(pool, stdlog.New(os.Stderr, "", stdlog.LstdFlags))
+	server.RunServer(ctx, cfg, pool, rdb)
 }

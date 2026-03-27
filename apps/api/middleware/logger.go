@@ -11,6 +11,7 @@ import (
 func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
+		c.Next()
 		log.Info().
 			Str("method", c.Request.Method).
 			Str("path", c.Request.URL.Path).
