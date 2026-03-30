@@ -39,8 +39,9 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 
 	candidateHandler := handlers.NewCandidateHandler(candidateSvc)
 	resultsHandler := handlers.NewResultsHandler(resultsSvc)
+	healthHandler := handlers.NewHealthHandler(pool, rdb)
 
-	r.GET("/health", handlers.Health)
+	r.GET("/health", healthHandler.Health)
 
 	api := r.Group("/api/v1")
 	{

@@ -102,5 +102,7 @@ func (s *VoteService) audit(ctx context.Context, input CastVoteInput, status str
 		IPAddress:     input.IPAddress,
 		UserAgent:     input.UserAgent,
 	}
-	vote.VoteRepo.WriteAuditLog(ctx, auditEntry)
+	if err := vote.VoteRepo.WriteAuditLog(ctx, auditEntry); err != nil {
+		log.Warn().Err(err).Str("status", status).Msg("audit log write failed")
+	}
 }

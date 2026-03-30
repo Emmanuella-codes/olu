@@ -42,7 +42,7 @@ func (r *mgRepository) GetAllCandidates(ctx context.Context) ([]models.Candidate
 		}
 		out = append(out, c)
 	}
-	return out, nil
+	return out, rows.Err()
 }
 
 func (r *mgRepository) GetCandidateByID(ctx context.Context, id uuid.UUID) (*models.Candidate, error) {
@@ -136,11 +136,12 @@ func (r *mgRepository) GetTotalVoteCount(ctx context.Context) (int64, error) {
 	return count, err
 }
 
-func (r *mgRepository) WriteAuditLog(ctx context.Context, entry models.AuditEntry) {
-	_, _ = r.db.Exec(ctx, `
+func (r *mgRepository) WriteAuditLog(ctx context.Context, entry models.AuditEntry) error {
+	_, err := r.db.Exec(ctx, `
 		INSERT INTO audit_logs (voter_hash, candidate_code, channel, status, ip_address, user_agent, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, NOW())
 	`, entry.VoterHash, entry.CandidateCode, entry.Channel, entry.Status, entry.IPAddress, entry.UserAgent)
+	return err
 }
 
 func (r *mgRepository) EnqueueSMS(ctx context.Context, msisdn, rawMessage string) error {

@@ -18,7 +18,7 @@ type VoteRepository interface {
 	RecordVote(ctx context.Context, vote models.Vote) error
 	GetVoteTally(ctx context.Context) ([]models.TallyRow, error)
 	GetTotalVoteCount(ctx context.Context) (int64, error)
-	WriteAuditLog(ctx context.Context, entry models.AuditEntry)
+	WriteAuditLog(ctx context.Context, entry models.AuditEntry) error
 	EnqueueSMS(ctx context.Context, msisdn, rawMessage string) error
 	GetPendingSMSBatch(ctx context.Context, limit int) ([]models.SMSQueueItem, error)
 	MarkSMSAsProcessed(ctx context.Context, id uuid.UUID) error
