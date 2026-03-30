@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/emmanuella-codes/olu/models"
-	"github.com/emmanuella-codes/olu/repository/vote"
+	"github.com/emmanuella-codes/olu/repositories/vote"
 	"github.com/emmanuella-codes/olu/utils"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"

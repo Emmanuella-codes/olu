@@ -8,7 +8,7 @@ import (
 
 	"github.com/emmanuella-codes/olu/cache"
 	"github.com/emmanuella-codes/olu/models"
-	"github.com/emmanuella-codes/olu/repository/vote"
+	"github.com/emmanuella-codes/olu/repositories/vote"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"

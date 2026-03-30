@@ -7,6 +7,7 @@ import (
 
 	"github.com/emmanuella-codes/olu/config"
 	"github.com/emmanuella-codes/olu/handlers"
+	adminhandler "github.com/emmanuella-codes/olu/handlers/admin-handler"
 	"github.com/emmanuella-codes/olu/middleware"
 	"github.com/emmanuella-codes/olu/services"
 	"github.com/gin-contrib/cors"
@@ -40,6 +41,7 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 	candidateHandler := handlers.NewCandidateHandler(candidateSvc)
 	resultsHandler := handlers.NewResultsHandler(resultsSvc)
 	healthHandler := handlers.NewHealthHandler(pool, rdb)
+	adminHandler := adminhandler.NewAdminHandler(cfg.AdminJWTSecret)
 
 	r.GET("/health", healthHandler.Health)
 
@@ -49,11 +51,17 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 		api.GET("/candidates/:id", candidateHandler.GetByID)
 		api.GET("/results", resultsHandler.GetResults)
 
-		// admin
-		// adminGroup := api.Group("/admin")
-		// {
-		// 	adminGroup.POST("/login")
-		// }
+		adminGroup := api.Group("/admin")
+		adminGroup.POST("/login", middleware.RateLimit(rdb, "admin_login", 5, time.Minute), adminHandler.Login)
+		
+		adminGroup.Use(middleware.RequireAdminToken(cfg.AdminJWTSecret))
+		{
+			adminGroup.GET("/candidates", adminHandler.AllCandidates)
+			adminGroup.POST("/candidates", adminHandler.CreateCandidate)
+			adminGroup.PATCH("/candidates/:id", adminHandler.UpdateCandidate)
+			adminGroup.DELETE("/candidates/:id", adminHandler.DeactivateCandidate)
+			adminGroup.GET("/stats", adminHandler.Stats)
+		}
 	}
 
 	srv := &http.Server{

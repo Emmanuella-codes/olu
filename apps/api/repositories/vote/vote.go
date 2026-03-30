@@ -2,7 +2,6 @@ package vote
 
 import (
 	"context"
-
 	"log"
 
 	"github.com/emmanuella-codes/olu/models"

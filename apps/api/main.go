@@ -10,7 +10,7 @@ import (
 	"github.com/emmanuella-codes/olu/cache"
 	"github.com/emmanuella-codes/olu/config"
 	"github.com/emmanuella-codes/olu/db"
-	"github.com/emmanuella-codes/olu/repository"
+	"github.com/emmanuella-codes/olu/repositories"
 	"github.com/emmanuella-codes/olu/server"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -49,6 +49,6 @@ func main() {
 		}
 	}()
 
-	repository.InitRepository(pool, stdlog.New(os.Stderr, "", stdlog.LstdFlags))
+	repositories.InitRepository(pool, stdlog.New(os.Stderr, "", stdlog.LstdFlags))
 	server.RunServer(ctx, cfg, pool, rdb)
 }

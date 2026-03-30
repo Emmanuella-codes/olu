@@ -36,6 +36,10 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("JWT_SECRET is not set")
 	}
 
+	if cfg.AdminJWTSecret == "" {
+		return nil, fmt.Errorf("ADMIN_JWT_SECRET is not set")
+	}
+
 	return cfg, nil
 }
 
