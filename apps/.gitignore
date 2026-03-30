@@ -1,2 +1,16 @@
+bin/
+tmp/
+apps/api/tmp/
+apps/api/build-errors.log
+*.exe
+*.test
+*.out
+vendor/
+
 .env
 .env.local
+
+apps/web/.next/
+apps/web/out/
+apps/web/.turbo/
+
