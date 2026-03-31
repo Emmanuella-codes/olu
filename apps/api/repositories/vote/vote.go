@@ -18,10 +18,6 @@ type VoteRepository interface {
 	GetVoteTally(ctx context.Context) ([]models.TallyRow, error)
 	GetTotalVoteCount(ctx context.Context) (int64, error)
 	WriteAuditLog(ctx context.Context, entry models.AuditEntry) error
-	EnqueueSMS(ctx context.Context, msisdn, rawMessage string) error
-	GetPendingSMSBatch(ctx context.Context, limit int) ([]models.SMSQueueItem, error)
-	MarkSMSAsProcessed(ctx context.Context, id uuid.UUID) error
-	MarkSMSRejected(ctx context.Context, id uuid.UUID, reason string) error
 }
 
 var VoteRepo VoteRepository

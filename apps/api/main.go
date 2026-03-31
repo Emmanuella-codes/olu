@@ -6,12 +6,16 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/emmanuella-codes/olu/cache"
 	"github.com/emmanuella-codes/olu/config"
 	"github.com/emmanuella-codes/olu/db"
 	"github.com/emmanuella-codes/olu/repositories"
 	"github.com/emmanuella-codes/olu/server"
+	"github.com/emmanuella-codes/olu/services"
+	"github.com/emmanuella-codes/olu/sms"
+	"github.com/emmanuella-codes/olu/workers"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -50,5 +54,14 @@ func main() {
 	}()
 
 	repositories.InitRepository(pool, stdlog.New(os.Stderr, "", stdlog.LstdFlags))
-	server.RunServer(ctx, cfg, pool, rdb)
+
+	smsProvider, err := sms.Build(cfg)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to build sms provider")
+	}
+	smsSvc := services.NewSMSService(smsProvider, cfg.SMSFrom)
+	smsWorker := workers.NewSMSWorker(smsSvc)
+	go smsWorker.RunQueueWorker(ctx, 20, 2*time.Second)
+
+	server.RunServer(ctx, cfg, pool, rdb, smsSvc)
 }

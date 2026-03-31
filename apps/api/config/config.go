@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 )
 
 type Config struct {
@@ -12,9 +13,18 @@ type Config struct {
 	JWTSecret      string
 	AdminJWTSecret string
 	Environment    string
+	SMSProvider    string
+	SMSBaseURL     string
+	SMSFrom        string
+	SMSTimeoutSec  int
 }
 
 func Load() (*Config, error) {
+	smsTimeoutSec, err := getEnvInt("SMS_TIMEOUT", 5)
+	if err != nil {
+		return nil, fmt.Errorf("SMS_TIMEOUT_SECONDS is invalid: %w", err)
+	}
+
 	cfg := &Config{
 		Port:           getEnv("PORT", "4006"),
 		DatabaseURL:    getEnv("DATABASE_URL", ""),
@@ -22,6 +32,10 @@ func Load() (*Config, error) {
 		JWTSecret:      getEnv("JWT_SECRET", ""),
 		AdminJWTSecret: getEnv("ADMIN_JWT_SECRET", ""),
 		Environment:    getEnv("ENVIRONMENT", "development"),
+		SMSProvider:    getEnv("SMS_PROVIDER", "mock"),
+		SMSBaseURL:     getEnv("SMS_BASE_URL", "http://localhost:3001"),
+		SMSFrom:        getEnv("SMS_FROM", "OLU"),
+		SMSTimeoutSec:  smsTimeoutSec,
 	}
 
 	if cfg.DatabaseURL == "" {
@@ -48,4 +62,11 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func getEnvInt(key string, fallback int) (int, error) {
+	if v := os.Getenv(key); v != "" {
+		return strconv.Atoi(v)
+	}
+	return fallback, nil
 }
