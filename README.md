@@ -66,12 +66,16 @@ go run .
 # runs on :4006
 ```
 
+The API will not start unless `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, and `ADMIN_JWT_SECRET` are set.
+
 **SMS Mock**
 ```bash
 cd apps/sms-mock
 go run .
 # runs on :3001 — dashboard at http://localhost:3001
 ```
+
+Run `apps/sms-mock` alongside the API during local development when you want a fake SMS provider and inbox viewer. It exposes `POST /api/sms/send` for mock outbound delivery and gives you a browser UI plus lookup endpoints like `/otp/:phone` and `/messages/:phone`.
 
 **Web**
 ```bash
