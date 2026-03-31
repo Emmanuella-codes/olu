@@ -38,7 +38,7 @@ func (h *OTPHandler) Send(c *gin.Context) {
 
 	if !validator.IsValidPhone(req.Phone) {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid Nigerian phone number",
+			"error": "invalid phone number",
 			"code":  "INVALID_PHONE",
 		})
 		return
@@ -71,7 +71,7 @@ func (h *OTPHandler) Verify(c *gin.Context) {
 
 	if !validator.IsValidPhone(req.Phone) {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid Nigerian phone number",
+			"error": "invalid phone number",
 			"code":  "INVALID_PHONE",
 		})
 		return

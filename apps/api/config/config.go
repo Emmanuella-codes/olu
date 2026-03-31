@@ -20,6 +20,31 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
+	cfg, err := loadBase()
+	if err != nil {
+		return nil, err
+	}
+
+	if cfg.RedisURL == "" {
+		return nil, fmt.Errorf("REDIS_URL is not set")
+	}
+
+	if cfg.JWTSecret == "" {
+		return nil, fmt.Errorf("JWT_SECRET is not set")
+	}
+
+	if cfg.AdminJWTSecret == "" {
+		return nil, fmt.Errorf("ADMIN_JWT_SECRET is not set")
+	}
+
+	return cfg, nil
+}
+
+func LoadForMigration() (*Config, error) {
+	return loadBase()
+}
+
+func loadBase() (*Config, error) {
 	smsTimeoutSec, err := getEnvInt("SMS_TIMEOUT", 5)
 	if err != nil {
 		return nil, fmt.Errorf("SMS_TIMEOUT_SECONDS is invalid: %w", err)
@@ -40,18 +65,6 @@ func Load() (*Config, error) {
 
 	if cfg.DatabaseURL == "" {
 		return nil, fmt.Errorf("DATABASE_URL is not set")
-	}
-
-	if cfg.RedisURL == "" {
-		return nil, fmt.Errorf("REDIS_URL is not set")
-	}
-
-	if cfg.JWTSecret == "" {
-		return nil, fmt.Errorf("JWT_SECRET is not set")
-	}
-
-	if cfg.AdminJWTSecret == "" {
-		return nil, fmt.Errorf("ADMIN_JWT_SECRET is not set")
 	}
 
 	return cfg, nil
