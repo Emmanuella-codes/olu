@@ -4,22 +4,26 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Port           string
-	DatabaseURL    string
-	RedisURL       string
-	JWTSecret      string
-	AdminJWTSecret string
-	Environment    string
-	SMSProvider    string
-	SMSBaseURL     string
-	SMSFrom        string
-	SMSTimeoutSec  int
+	Port            string
+	DatabaseURL     string
+	RedisURL        string
+	JWTSecret       string
+	AdminJWTSecret  string
+	Environment     string
+	SMSProvider     string
+	SMSBaseURL      string
+	SMSFrom         string
+	SMSTimeoutSec   int
+	EnableSMSWorker bool
 }
 
 func Load() (*Config, error) {
+	_ = godotenv.Load()
 	cfg, err := loadBase()
 	if err != nil {
 		return nil, err
@@ -49,18 +53,23 @@ func loadBase() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("SMS_TIMEOUT_SECONDS is invalid: %w", err)
 	}
+	enableSMSWorker, err := getEnvBool("SMS_WORKER_ENABLED", false)
+	if err != nil {
+		return nil, fmt.Errorf("SMS_WORKER_ENABLED is invalid: %w", err)
+	}
 
 	cfg := &Config{
-		Port:           getEnv("PORT", "4006"),
-		DatabaseURL:    getEnv("DATABASE_URL", ""),
-		RedisURL:       getEnv("REDIS_URL", ""),
-		JWTSecret:      getEnv("JWT_SECRET", ""),
-		AdminJWTSecret: getEnv("ADMIN_JWT_SECRET", ""),
-		Environment:    getEnv("ENVIRONMENT", "development"),
-		SMSProvider:    getEnv("SMS_PROVIDER", "mock"),
-		SMSBaseURL:     getEnv("SMS_BASE_URL", "http://localhost:3001"),
-		SMSFrom:        getEnv("SMS_FROM", "OLU"),
-		SMSTimeoutSec:  smsTimeoutSec,
+		Port:            getEnv("PORT", "4006"),
+		DatabaseURL:     getEnv("DATABASE_URL", ""),
+		RedisURL:        getEnv("REDIS_URL", ""),
+		JWTSecret:       getEnv("JWT_SECRET", ""),
+		AdminJWTSecret:  getEnv("ADMIN_JWT_SECRET", ""),
+		Environment:     getEnv("ENVIRONMENT", "development"),
+		SMSProvider:     getEnv("SMS_PROVIDER", "mock"),
+		SMSBaseURL:      getEnv("SMS_BASE_URL", "http://localhost:3001"),
+		SMSFrom:         getEnv("SMS_FROM", "OLU"),
+		SMSTimeoutSec:   smsTimeoutSec,
+		EnableSMSWorker: enableSMSWorker,
 	}
 
 	if cfg.DatabaseURL == "" {
@@ -80,6 +89,13 @@ func getEnv(key, fallback string) string {
 func getEnvInt(key string, fallback int) (int, error) {
 	if v := os.Getenv(key); v != "" {
 		return strconv.Atoi(v)
+	}
+	return fallback, nil
+}
+
+func getEnvBool(key string, fallback bool) (bool, error) {
+	if v := os.Getenv(key); v != "" {
+		return strconv.ParseBool(v)
 	}
 	return fallback, nil
 }

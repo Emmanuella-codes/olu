@@ -6,6 +6,7 @@ import (
 	stdlog "log"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -101,8 +102,19 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to build sms provider")
 	}
 	smsSvc := services.NewSMSService(smsProvider, cfg.SMSFrom)
-	smsWorker := workers.NewSMSWorker(smsSvc)
-	go smsWorker.RunQueueWorker(ctx, 20, 2*time.Second)
+	var workerWG sync.WaitGroup
+	if cfg.EnableSMSWorker {
+		smsWorker := workers.NewSMSWorker(smsSvc)
+		workerWG.Add(1)
+		go func() {
+			defer workerWG.Done()
+			smsWorker.RunQueueWorker(ctx, 20, 2*time.Second)
+		}()
+		log.Info().Msg("sms worker enabled")
+	} else {
+		log.Info().Msg("sms worker disabled")
+	}
 
 	server.RunServer(ctx, cfg, pool, rdb, smsSvc)
+	workerWG.Wait()
 }

@@ -27,11 +27,10 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger())
 	r.Use(cors.New(cors.Config{
-		// AllowAllOrigins: ,
-		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "X-Request-ID"},
-		AllowCredentials: true,
-		MaxAge:           5 * time.Minute,
+		AllowOrigins:  []string{"*"},
+		AllowMethods:  []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:  []string{"Origin", "Authorization", "Content-Type", "X-Request-ID"},
+		MaxAge:        5 * time.Minute,
 	}))
 
 	candidateSvc := services.NewCandidateService(pool, rdb)

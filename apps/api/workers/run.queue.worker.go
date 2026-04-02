@@ -2,6 +2,7 @@ package workers
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/emmanuella-codes/olu/services"
@@ -30,8 +31,6 @@ func (w *SMSWorker) RunQueueWorker(ctx context.Context, batchSize int, pollInter
 	ticker := time.NewTicker(pollInterval)
 	defer ticker.Stop()
 
-	w.deliverPendingBatch(ctx, batchSize)
-
 	for {
 		select {
 		case <-ctx.Done():
@@ -45,6 +44,9 @@ func (w *SMSWorker) RunQueueWorker(ctx context.Context, batchSize int, pollInter
 func (w *SMSWorker) deliverPendingBatch(ctx context.Context, batchSize int) {
 	err := w.smsService.DeliverPendingBatch(ctx, batchSize)
 	if err != nil {
+		if ctx.Err() != nil || errors.Is(err, context.Canceled) {
+			return
+		}
 		log.Warn().Err(err).Msg("sms worker batch failed")
 	}
 }
