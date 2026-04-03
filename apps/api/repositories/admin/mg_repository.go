@@ -23,6 +23,19 @@ func newMgRepository(db *pgxpool.Pool, logger *log.Logger) *mgRepository {
 	}
 }
 
+func (r *mgRepository) CreateAdmin(ctx context.Context, email, passwordHash string) (*models.Admin, error) {
+	var out models.Admin
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO admins (id, email, password_hash)
+		VALUES ($1, $2, $3)
+		RETURNING id, email, password_hash, is_active, last_login
+	`, uuid.New(), email, passwordHash).Scan(&out.ID, &out.Email, &out.PasswordHash, &out.IsActive, &out.LastLogin)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (r *mgRepository) CreateCandidate(ctx context.Context, candidate dtos.CreateCandidateDTO) (*models.Candidate, error) {
 	var out models.Candidate
 	id := uuid.New()

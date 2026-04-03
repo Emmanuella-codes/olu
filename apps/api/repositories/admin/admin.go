@@ -14,6 +14,7 @@ import (
 var ErrNotFound = errors.New("not found")
 
 type AdminRepository interface {
+	CreateAdmin(ctx context.Context, email, passwordHash string) (*models.Admin, error)
 	CreateCandidate(ctx context.Context, candidate dtos.CreateCandidateDTO) (*models.Candidate, error)
 	UpdateCandidate(ctx context.Context, id uuid.UUID, candidate dtos.UpdateCandidateDTO) (*models.Candidate, error)
 	DeactivateCandidate(ctx context.Context, id uuid.UUID) error

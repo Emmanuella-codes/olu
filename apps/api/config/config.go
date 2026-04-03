@@ -23,7 +23,6 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-	_ = godotenv.Load()
 	cfg, err := loadBase()
 	if err != nil {
 		return nil, err
@@ -49,6 +48,8 @@ func LoadForMigration() (*Config, error) {
 }
 
 func loadBase() (*Config, error) {
+	_ = godotenv.Load()
+
 	smsTimeoutSec, err := getEnvInt("SMS_TIMEOUT", 5)
 	if err != nil {
 		return nil, fmt.Errorf("SMS_TIMEOUT_SECONDS is invalid: %w", err)
