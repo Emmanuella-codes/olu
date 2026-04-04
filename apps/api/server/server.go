@@ -65,10 +65,10 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 
 		adminGroup.Use(middleware.RequireAdminToken(cfg.AdminJWTSecret))
 		{
-			adminGroup.POST("/admins", adminHandler.CreateAdmin)
+			adminGroup.POST("/create", adminHandler.CreateAdmin)
 			adminGroup.GET("/candidates", adminHandler.AllCandidates)
 			adminGroup.POST("/candidates", adminHandler.CreateCandidate)
-			adminGroup.PATCH("/candidates/:id", adminHandler.UpdateCandidate)
+			adminGroup.PUT("/candidates/:id", adminHandler.UpdateCandidate)
 			adminGroup.DELETE("/candidates/:id", adminHandler.DeactivateCandidate)
 			adminGroup.GET("/stats", adminHandler.Stats)
 		}
