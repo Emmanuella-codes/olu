@@ -19,13 +19,14 @@ var ErrAlreadyVoted = errors.New("voter has already voted")
 var ErrInvalidCandidate = errors.New("candidate not found")
 
 type VoteService struct {
-	pool *pgxpool.Pool
-	rdb  *redis.Client
-	salt string
+	pool   *pgxpool.Pool
+	rdb    *redis.Client
+	smsSvc *SMSService
+	salt   string
 }
 
-func NewVoteService(pool *pgxpool.Pool, rdb *redis.Client) *VoteService {
-	return &VoteService{pool: pool, rdb: rdb, salt: "olu-vote-v1"}
+func NewVoteService(pool *pgxpool.Pool, rdb *redis.Client, smsSvc *SMSService) *VoteService {
+	return &VoteService{pool: pool, rdb: rdb, smsSvc: smsSvc, salt: "olu-vote-v1"}
 }
 
 type CastVoteInput struct {
@@ -49,6 +50,7 @@ func (s *VoteService) CastVote(ctx context.Context, input CastVoteInput) (*CastV
 	}
 	if candidate == nil {
 		s.audit(ctx, input, "invalid_code")
+		s.queueRejection(ctx, input.Phone, "We could not record your vote because the candidate code is invalid.")
 		return nil, ErrInvalidCandidate
 	}
 
@@ -60,6 +62,7 @@ func (s *VoteService) CastVote(ctx context.Context, input CastVoteInput) (*CastV
 	}
 	if alreadyVoted {
 		s.audit(ctx, input, "duplicate")
+		s.queueRejection(ctx, input.Phone, "We could not record your vote because this number has already voted.")
 		return nil, ErrAlreadyVoted
 	}
 
@@ -75,13 +78,16 @@ func (s *VoteService) CastVote(ctx context.Context, input CastVoteInput) (*CastV
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			s.audit(ctx, input, "duplicate")
+			s.queueRejection(ctx, input.Phone, "We could not record your vote because this number has already voted.")
 			return nil, ErrAlreadyVoted
 		}
 		s.audit(ctx, input, "error")
+		s.queueRejection(ctx, input.Phone, "We could not process your vote at this time. Please try again later.")
 		return nil, fmt.Errorf("vote: record: %w", err)
 	}
 
 	s.audit(ctx, input, "success")
+	s.queueConfirmation(ctx, input.Phone, candidate.Name, voteModel.ID.String())
 	log.Info().
 		Str("candidate", candidate.Code).
 		Str("channel", string(input.Channel)).
@@ -104,5 +110,23 @@ func (s *VoteService) audit(ctx context.Context, input CastVoteInput, status str
 	}
 	if err := vote.VoteRepo.WriteAuditLog(ctx, auditEntry); err != nil {
 		log.Warn().Err(err).Str("status", status).Msg("audit log write failed")
+	}
+}
+
+func (s *VoteService) queueConfirmation(ctx context.Context, phone, candidateName, confirmationID string) {
+	if s.smsSvc == nil {
+		return
+	}
+	if err := s.smsSvc.QueueVoteConfirmation(ctx, phone, candidateName, confirmationID); err != nil {
+		log.Warn().Err(err).Str("phone", phone).Msg("queue vote confirmation failed")
+	}
+}
+
+func (s *VoteService) queueRejection(ctx context.Context, phone, reason string) {
+	if s.smsSvc == nil {
+		return
+	}
+	if err := s.smsSvc.QueueVoteRejection(ctx, phone, reason); err != nil {
+		log.Warn().Err(err).Str("phone", phone).Msg("queue vote rejection failed")
 	}
 }

@@ -21,6 +21,7 @@ func HashVoterIdentity(phone, salt string) string {
 func normalizePhone(phone string) string {
 	phone = strings.ReplaceAll(phone, " ", "")
 	phone = strings.ReplaceAll(phone, "-", "")
+	phone = strings.TrimPrefix(phone, "+")
 
 	if strings.HasPrefix(phone, "0") {
 		phone = "234" + phone[1:]

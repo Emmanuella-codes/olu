@@ -36,6 +36,11 @@ func (h *AdminHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "email and password required"})
 		return
 	}
+	req.Email = normalizeAdminEmail(req.Email)
+	if req.Email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "email and password required"})
+		return
+	}
 
 	adminU, err := admin.AdminRepo.GetAdminByEmail(c.Request.Context(), req.Email)
 	if err != nil || adminU == nil || !adminU.IsActive {

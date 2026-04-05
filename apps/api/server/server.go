@@ -17,7 +17,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb *redis.Client) {
+func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb *redis.Client, smsSvc *services.SMSService) {
 	if cfg.Environment != "development" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -27,18 +27,20 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger())
 	r.Use(cors.New(cors.Config{
-		// AllowAllOrigins: ,
-		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "X-Request-ID"},
-		AllowCredentials: true,
-		MaxAge:           5 * time.Minute,
+		AllowOrigins:  []string{"*"},
+		AllowMethods:  []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:  []string{"Origin", "Authorization", "Content-Type", "X-Request-ID"},
+		MaxAge:        5 * time.Minute,
 	}))
 
 	candidateSvc := services.NewCandidateService(pool, rdb)
-	// voteSvc := services.NewVoteService(pool, rdb)
+	voteSvc := services.NewVoteService(pool, rdb, smsSvc)
+	otpSvc := services.NewOTPService(rdb, smsSvc)
 	resultsSvc := services.NewResultsService(pool, rdb)
 
 	candidateHandler := handlers.NewCandidateHandler(candidateSvc)
+	otpHandler := handlers.NewOTPHandler(otpSvc, cfg.JWTSecret)
+	voteHandler := handlers.NewVoteHandler(voteSvc)
 	resultsHandler := handlers.NewResultsHandler(resultsSvc)
 	healthHandler := handlers.NewHealthHandler(pool, rdb)
 	adminHandler := adminhandler.NewAdminHandler(cfg.AdminJWTSecret)
@@ -47,18 +49,26 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 
 	api := r.Group("/api/v1")
 	{
+		authGroup := api.Group("/auth")
+		{
+			authGroup.POST("/send-otp", middleware.RateLimit(rdb, "send_otp", 5, time.Minute), otpHandler.Send)
+			authGroup.POST("/verify-otp", middleware.RateLimit(rdb, "verify_otp", 10, time.Minute), otpHandler.Verify)
+		}
+
 		api.GET("/candidates", candidateHandler.List)
 		api.GET("/candidates/:id", candidateHandler.GetByID)
 		api.GET("/results", resultsHandler.GetResults)
+		api.POST("/vote", middleware.RequireOTPToken(cfg.JWTSecret), voteHandler.Cast)
 
 		adminGroup := api.Group("/admin")
 		adminGroup.POST("/login", middleware.RateLimit(rdb, "admin_login", 5, time.Minute), adminHandler.Login)
-		
+
 		adminGroup.Use(middleware.RequireAdminToken(cfg.AdminJWTSecret))
 		{
+			adminGroup.POST("/create", adminHandler.CreateAdmin)
 			adminGroup.GET("/candidates", adminHandler.AllCandidates)
 			adminGroup.POST("/candidates", adminHandler.CreateCandidate)
-			adminGroup.PATCH("/candidates/:id", adminHandler.UpdateCandidate)
+			adminGroup.PUT("/candidates/:id", adminHandler.UpdateCandidate)
 			adminGroup.DELETE("/candidates/:id", adminHandler.DeactivateCandidate)
 			adminGroup.GET("/stats", adminHandler.Stats)
 		}
