@@ -54,5 +54,5 @@ export default function CandidateCard({ candidate }: Props) {
                 </Link>
             </div>
         </div>
-    )
+    );
 }

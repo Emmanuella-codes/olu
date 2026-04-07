@@ -1,11 +1,10 @@
 import { SMS_NUMBER } from "@/lib/api/constants";
 import Link from "next/link";
 
-
 export default function SmsGuide() {
     return (
         <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 text-xl">
+            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center shrink-0 text-xl">
                 📱
             </div>
             <div className="flex-1 min-w-0">
@@ -20,10 +19,10 @@ export default function SmsGuide() {
             </div>
             <Link
                 href="/how-to-vote#sms"
-                className="btn-secondary text-sm px-4 py-2 min-h-0 h-auto flex-shrink-0 whitespace-nowrap"
+                className="btn-secondary text-sm px-4 py-2 min-h-0 h-auto shrink-0 whitespace-nowrap"
             >
                 Learn more
             </Link>
         </div>
-    )
+    );
 }

@@ -21,7 +21,7 @@ export default function ConfirmationModal({ candidate, onConfirm, onCancel, load
  
             {/* candidate summary */}
             <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-brand-200 flex items-center justify-center text-xl font-bold text-brand-700 flex-shrink-0">
+                <div className="w-14 h-14 rounded-full bg-brand-200 flex items-center justify-center text-xl font-bold text-brand-700 shrink-0">
                     {candidate.name.charAt(0)}
                 </div>
                     <div>
@@ -54,5 +54,5 @@ export default function ConfirmationModal({ candidate, onConfirm, onCancel, load
                 </button>
             </div>
     </div>
-    )
+    );
 }

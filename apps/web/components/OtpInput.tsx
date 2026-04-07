@@ -1,3 +1,5 @@
+"use client";
+
 import { ChangeEvent, useRef, KeyboardEvent, ClipboardEvent } from "react";
 
 interface Props {
@@ -64,5 +66,5 @@ export default function OtpInput({ value, onChange }: Props) {
           />
         ))}
       </div> 
-    )
+    );
 }

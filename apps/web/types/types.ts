@@ -1,3 +1,5 @@
+export type Step = "phone" | "otp" | "confirm" | "done";
+
 export interface Candidate {
     id: string;
     code: string;

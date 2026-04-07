@@ -39,8 +39,8 @@ export async function sendOTP(phone: string): Promise<void> {
     });
 }
 
-export async function verifyOTP(phone: string, code: string): Promise<void> {
-    await handleResponse<void>("/auth/verify-otp", {
+export async function verifyOTP(phone: string, code: string): Promise<{ token: string; message: string }> {
+    return handleResponse<{ token: string; message: string }>("/auth/verify-otp", {
         method: "POST",
         body: JSON.stringify({ phone, code }),
     });
