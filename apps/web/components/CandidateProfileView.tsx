@@ -28,7 +28,7 @@ export default function CandidateProfileView({ candidate }: Props) {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{candidate.name}</h1>
-            <p className="mt-0.5 font-medium text-brand-600">{candidate.party}</p>
+            <p className="mt-0.5 font-medium text-brand-600">{candidate.party.toLocaleUpperCase()}</p>
             <span className="mt-2 inline-block rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
               Code: {candidate.code}
             </span>
@@ -69,7 +69,7 @@ export default function CandidateProfileView({ candidate }: Props) {
       </div>
 
       <p className="mt-4 text-center text-sm text-gray-400">
-        No internet? Send <strong>VOTE {candidate.code}</strong> to <strong>4040</strong>
+        No internet? Send <strong>VOTE {candidate.code}</strong> to <strong>****</strong>
       </p>
     </div>
   );

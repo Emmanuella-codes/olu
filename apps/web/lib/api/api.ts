@@ -2,20 +2,35 @@ import { ApiError, Candidate, Results } from "@/types/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+export class ApiRequestError extends Error {
+    constructor(
+        public readonly status: number,
+        message: string
+    ) {
+        super(message);
+        this.name = "ApiRequestError";
+    }
+}
+
 async function handleResponse<T>(path: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(`${API_URL}/api/v1${path}`, {
-        headers: { "Content-Type": "application/json", ...options?.headers },
-        ...options,
-    });
+    let res: Response;
+    try {
+        res = await fetch(`${API_URL}/api/v1${path}`, {
+            headers: { "Content-Type": "application/json", ...options?.headers },
+            ...options,
+        });
+    } catch {
+        throw new ApiRequestError(0, "Network error. Please check your connection.");
+    }
 
     const json = await res.json();
 
     if (!res.ok) {
         const err = json as ApiError;
-        throw new Error(err.error ?? `HTTP ${res.status}`);
+        throw new ApiRequestError(res.status, err.error ?? `HTTP ${res.status}`);
     }
 
-    return json
+    return json;
 }
 
 // candidates
@@ -26,8 +41,8 @@ export async function getCandidates(): Promise<Candidate[]> {
 }
 
 export async function getCandidate(id: string): Promise<Candidate> {
-    const data = await handleResponse<Candidate>(`/candidates/${id}`);
-    return data;
+    const data = await handleResponse<{ data: Candidate }>(`/candidates/${id}`);
+    return data.data;
 }
 
 // otp
@@ -39,8 +54,8 @@ export async function sendOTP(phone: string): Promise<void> {
     });
 }
 
-export async function verifyOTP(phone: string, code: string): Promise<{ token: string; message: string }> {
-    return handleResponse<{ token: string; message: string }>("/auth/verify-otp", {
+export async function verifyOTP(phone: string, code: string): Promise<{ token: string }> {
+    return handleResponse<{ token: string }>("/auth/verify-otp", {
         method: "POST",
         body: JSON.stringify({ phone, code }),
     });
@@ -51,12 +66,13 @@ export async function verifyOTP(phone: string, code: string): Promise<{ token: s
 export async function castVote(
     candidateCode: string,
     token: string
-): Promise<{ message: string; confirmation_id: string; candidate: string }> {
-    return handleResponse("/vote", {
+): Promise<{ confirmation_id: string; candidate_name: string }> {
+    const res = await handleResponse<{ data: { confirmation_id: string; candidate_name: string } }>("/vote", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify({ candidate_code: candidateCode }),
-    })
+    });
+    return res.data;
 }
 
 // results

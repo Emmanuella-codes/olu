@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getResults } from "@/lib/api/api";
 import { Results, TallyRow } from "@/types/types";
@@ -14,6 +14,8 @@ export default function ResultsView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [pollingPaused, setPollingPaused] = useState(false);
+  const failureCount = useRef(0);
 
   const fetchResults = useCallback(async () => {
     try {
@@ -21,8 +23,14 @@ export default function ResultsView() {
       setResults(data);
       setLastUpdated(new Date());
       setError(false);
+      failureCount.current = 0;
+      setPollingPaused(false);
     } catch {
+      failureCount.current += 1;
       setError(true);
+      if (failureCount.current >= 3) {
+        setPollingPaused(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -30,7 +38,11 @@ export default function ResultsView() {
 
   useEffect(() => {
     fetchResults();
-    const id = window.setInterval(fetchResults, REFRESH_INTERVAL);
+    const id = window.setInterval(() => {
+      if (failureCount.current < 3) {
+        fetchResults();
+      }
+    }, REFRESH_INTERVAL);
 
     return () => window.clearInterval(id);
   }, [fetchResults]);
@@ -57,7 +69,13 @@ export default function ResultsView() {
 
       {error && !loading && (
         <div className="card border-red-200 bg-red-50 text-red-700">
-          Could not load results. Please try again.
+          Could not load results.{" "}
+          {pollingPaused
+            ? "Auto-refresh paused after repeated failures. "
+            : "Please try again. "}
+          <button onClick={fetchResults} className="underline font-medium">
+            Retry now
+          </button>
         </div>
       )}
 
@@ -77,7 +95,7 @@ export default function ResultsView() {
             {leader && (
               <div className="card col-span-2 text-center sm:col-span-1">
                 <p className="truncate text-lg font-bold text-gray-900">{leader.name}</p>
-                <p className="text-sm font-medium text-brand-500">{leader.party}</p>
+                <p className="text-sm font-medium text-brand-500">{leader.party.toLocaleUpperCase()}</p>
                 <p className="mt-1 text-xs text-gray-400">Currently leading</p>
               </div>
             )}
@@ -115,7 +133,7 @@ export default function ResultsView() {
                           {row.code}
                         </span>
                       </td>
-                      <td className="py-3 pr-4 text-gray-500">{row.party}</td>
+                      <td className="py-3 pr-4 text-gray-500">{row.party.toLocaleUpperCase()}</td>
                       <td className="py-3 text-right font-semibold text-gray-900">
                         {row.vote_count.toLocaleString("en-NG")}
                       </td>

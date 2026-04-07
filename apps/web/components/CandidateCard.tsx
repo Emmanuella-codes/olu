@@ -20,7 +20,7 @@ export default function CandidateCard({ candidate }: Props) {
                 </div>
                 <div className="min-w-0">
                     <h2 className="font-semibold text-gray-900 truncate">{candidate.name}</h2>
-                    <p className="text-sm text-brand-600 truncate">{candidate.party}</p>
+                    <p className="text-sm text-brand-600 truncate">{candidate.party.toLocaleUpperCase()}</p>
                 </div>
                 <span className="ml-auto shrink-0 bg-brand-50 text-brand-700 text-xs font-bold px-2 py-1 rounded border border-brand-200 font-mono">
                     {candidate.code}

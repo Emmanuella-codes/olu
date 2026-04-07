@@ -12,7 +12,7 @@ const LENGTH = 6;
 export default function OtpInput({ value, onChange }: Props) {
     const refs = useRef<(HTMLInputElement | null)[]>([]);
 
-    const digits = value.padEnd(LENGTH, "").split("").slice(0, LENGTH);
+    const digits = Array.from({ length: LENGTH }, (_, i) => value[i] ?? "");
  
     const handleChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
         const char = e.target.value.replace(/\D/g, "").slice(-1);

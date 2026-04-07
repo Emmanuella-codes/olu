@@ -1,30 +1,49 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Brand palette — Nigerian green */
+  --color-brand-50: #f0fdf4;
+  --color-brand-100: #dcfce7;
+  --color-brand-200: #bbf7d0;
+  --color-brand-300: #86efac;
+  --color-brand-400: #4ade80;
+  --color-brand-500: #22c55e;
+  --color-brand-600: #16a34a;
+  --color-brand-700: #15803d;
+  --color-brand-800: #166534;
+  --color-brand-900: #14532d;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: "Avenir Next", "Segoe UI", sans-serif;
-  --font-mono: "SFMono-Regular", "Menlo", monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Base */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
+  background-color: #f9fafb; /* gray-50 */
+  color: #111827; /* gray-900 */
 }
 
+/* Layout utilities */
 .card {
   @apply bg-white rounded-xl border border-gray-200 shadow-sm p-6;
+}
+
+.btn-primary {
+  @apply inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5
+         text-sm font-semibold text-white shadow-sm transition-colors
+         hover:bg-brand-700
+         focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5
+         text-sm font-semibold text-gray-700 shadow-sm transition-colors
+         hover:bg-gray-50
+         focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.input-field {
+  @apply block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5
+         text-sm text-gray-900 shadow-sm placeholder:text-gray-400
+         focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20
+         disabled:bg-gray-50 disabled:text-gray-500;
 }

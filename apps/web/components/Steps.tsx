@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { castVote, getCandidates, sendOTP, verifyOTP } from "@/lib/api/api";
+import { ApiRequestError, castVote, getCandidates, sendOTP, verifyOTP } from "@/lib/api/api";
 import { VOTE_PHONE_KEY, VOTE_TOKEN_KEY } from "@/lib/api/constants";
 import { Candidate, Step } from "@/types/types";
 
@@ -88,7 +88,11 @@ export default function Steps() {
       setStep("otp");
       setCountdown(60);
     } catch (error) {
-      setError(getErrorMessage(error, "Failed to send OTP. Please try again."));
+      if (error instanceof ApiRequestError && error.status === 429) {
+        setError("Too many requests. Please wait a minute before trying again.");
+      } else {
+        setError(getErrorMessage(error, "Failed to send OTP. Please try again."));
+      }
     } finally {
       setLoading(false);
     }
@@ -129,6 +133,14 @@ export default function Steps() {
       window.sessionStorage.removeItem(VOTE_TOKEN_KEY);
       window.sessionStorage.removeItem(VOTE_PHONE_KEY);
     } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 401) {
+        window.sessionStorage.removeItem(VOTE_TOKEN_KEY);
+        setToken("");
+        setOtpCode("");
+        setStep("otp");
+        setError("Your session expired. Please verify your code again.");
+        return;
+      }
       const message = getErrorMessage(error, "Failed to cast vote. Please try again.");
       setError(message.includes("already") ? "You have already cast your vote." : message);
     } finally {
@@ -263,9 +275,9 @@ export default function Steps() {
           <h2 className="text-xl font-bold text-gray-900">Vote confirmed!</h2>
           <p className="text-gray-500">Your vote has been recorded securely.</p>
           <p className="rounded-lg bg-gray-50 px-4 py-2 font-mono text-xs text-gray-400">
-            Confirmation ID: {confirmationId.slice(0, 8).toUpperCase()}
+            Confirmation ID: {confirmationId?.slice(0, 8).toUpperCase()}
           </p>
-          <button className="btn-secondary" onClick={() => router.push("/result")}>
+          <button className="btn-secondary" onClick={() => router.push("/results")}>
             See live results
           </button>
         </div>
