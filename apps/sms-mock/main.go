@@ -12,9 +12,12 @@ import (
 	"github.com/emmanuella-codes/sms-mock/handlers"
 	"github.com/emmanuella-codes/sms-mock/store"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	_ = godotenv.Load()
+
 	gin.SetMode(gin.ReleaseMode)
 
 	port := os.Getenv("PORT")
@@ -22,8 +25,14 @@ func main() {
 		port = "3001"
 	}
 
+	webhookSecret := os.Getenv("WEBHOOK_SECRET")
+	apiBaseURL := os.Getenv("API_BASE_URL")
+	if apiBaseURL == "" {
+		apiBaseURL = "http://localhost:4006"
+	}
+
 	s := store.New()
-	h := handlers.New(s)
+	h := handlers.New(s, webhookSecret, apiBaseURL)
 
 	r := gin.New()
 	r.Use(gin.Recovery())
@@ -42,6 +51,7 @@ func main() {
 	r.GET("/", h.UI)
 
 	r.POST("/api/sms/send", h.Send)
+	r.POST("/api/sms/inbound", h.Inbound)
 
 	r.GET("/messages", h.AllMessages)
 	r.GET("/messages/:phone", h.ByPhone)
@@ -72,6 +82,7 @@ func main() {
 	fmt.Printf("\n  OLU SMS mock running\n")
 	fmt.Printf("  UI       → http://localhost:%s\n", port)
 	fmt.Printf("  Send     → POST http://localhost:%s/api/sms/send\n", port)
+	fmt.Printf("  Inbound  → POST http://localhost:%s/api/sms/inbound\n", port)
 	fmt.Printf("  Read OTP → GET  http://localhost:%s/otp/:phone\n", port)
 	fmt.Printf("  All msgs → GET  http://localhost:%s/messages\n", port)
 	fmt.Printf("  Latest   → GET  http://localhost:%s/messages/:phone/latest\n\n", port)

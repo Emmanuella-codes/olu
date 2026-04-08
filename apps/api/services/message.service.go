@@ -107,7 +107,16 @@ func buildOTPMessage(code string) string {
 }
 
 func buildVoteConfirmationMessage(candidateName, confirmationID string) string {
-	return fmt.Sprintf("Vote confirmed for %s. Confirmation ID: %s.", strings.TrimSpace(candidateName), confirmationID)
+	confirmationID = strings.TrimSpace(confirmationID)
+	if len(confirmationID) > 8 {
+		confirmationID = confirmationID[:8]
+	}
+
+	return fmt.Sprintf(
+		"Vote confirmed for %s. Confirmation ID: %s.",
+		strings.TrimSpace(candidateName),
+		strings.ToUpper(confirmationID),
+	)
 }
 
 func buildVoteRejectionMessage(reason string) string {

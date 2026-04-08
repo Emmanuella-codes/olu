@@ -9,6 +9,7 @@ import (
 type Channel string
 
 const (
+	ChannelInbound Channel = "inbound"
 	ChannelOTP     Channel = "otp"
 	ChannelConfirm Channel = "confirm"
 	ChannelReject  Channel = "reject"
@@ -38,6 +39,14 @@ func New() *Store {
 }
 
 func (s *Store) Add(to, from, body string) Message {
+	return s.addMessage(to, from, body, detectChannel(body), extractOTP(body))
+}
+
+func (s *Store) AddInbound(from, body string) Message {
+	return s.addMessage("OLU", from, body, ChannelInbound, "")
+}
+
+func (s *Store) addMessage(to, from, body string, channel Channel, otpCode string) Message {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -47,8 +56,8 @@ func (s *Store) Add(to, from, body string) Message {
 		To:      to,
 		From:    from,
 		Body:    body,
-		Channel: detectChannel(body),
-		OTPCode: extractOTP(body),
+		Channel: channel,
+		OTPCode: otpCode,
 		SentAt:  time.Now(),
 	}
 	s.messages = append(s.messages, msg)
@@ -70,7 +79,7 @@ func (s *Store) ByPhone(phone string) []Message {
 	defer s.mu.RUnlock()
 	out := []Message{}
 	for _, m := range s.messages {
-		if m.To == phone || normalizePhone(m.To) == normalizePhone(phone) {
+		if matchesPhone(m.To, phone) || matchesPhone(m.From, phone) {
 			out = append(out, m)
 		}
 	}
@@ -82,7 +91,7 @@ func (s *Store) Latest(phone string) *Message {
 	defer s.mu.RUnlock()
 	for i := len(s.messages) - 1; i >= 0; i-- {
 		m := s.messages[i]
-		if m.To == phone || normalizePhone(m.To) == normalizePhone(phone) {
+		if matchesPhone(m.To, phone) || matchesPhone(m.From, phone) {
 			return &m
 		}
 	}
@@ -94,7 +103,7 @@ func (s *Store) LatestOTP(phone string) string {
 	defer s.mu.RUnlock()
 	for i := len(s.messages) - 1; i >= 0; i-- {
 		m := s.messages[i]
-		if (m.To == phone || normalizePhone(m.To) == normalizePhone(phone)) &&
+		if (matchesPhone(m.To, phone) || matchesPhone(m.From, phone)) &&
 			m.Channel == ChannelOTP &&
 			m.OTPCode != "" {
 			return m.OTPCode
@@ -118,4 +127,8 @@ func (s *Store) Stats() map[string]int {
 		stats[string(m.Channel)]++
 	}
 	return stats
+}
+
+func matchesPhone(value, phone string) bool {
+	return value == phone || normalizePhone(value) == normalizePhone(phone)
 }

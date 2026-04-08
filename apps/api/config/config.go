@@ -14,6 +14,7 @@ type Config struct {
 	RedisURL        string
 	JWTSecret       string
 	AdminJWTSecret  string
+	WebhookSecret   string
 	Environment     string
 	SMSProvider     string
 	SMSBaseURL      string
@@ -38,6 +39,10 @@ func Load() (*Config, error) {
 
 	if cfg.AdminJWTSecret == "" {
 		return nil, fmt.Errorf("ADMIN_JWT_SECRET is not set")
+	}
+
+	if cfg.WebhookSecret == "" {
+		return nil, fmt.Errorf("WEBHOOK_SECRET is not set")
 	}
 
 	return cfg, nil
@@ -65,6 +70,7 @@ func loadBase() (*Config, error) {
 		RedisURL:        getEnv("REDIS_URL", ""),
 		JWTSecret:       getEnv("JWT_SECRET", ""),
 		AdminJWTSecret:  getEnv("ADMIN_JWT_SECRET", ""),
+		WebhookSecret:   getEnv("WEBHOOK_SECRET", ""),
 		Environment:     getEnv("ENVIRONMENT", "development"),
 		SMSProvider:     getEnv("SMS_PROVIDER", "mock"),
 		SMSBaseURL:      getEnv("SMS_BASE_URL", "http://localhost:3001"),

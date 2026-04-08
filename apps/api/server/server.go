@@ -27,10 +27,10 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger())
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:  []string{"*"},
-		AllowMethods:  []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:  []string{"Origin", "Authorization", "Content-Type", "X-Request-ID"},
-		MaxAge:        5 * time.Minute,
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Origin", "Authorization", "Content-Type", "X-Request-ID"},
+		MaxAge:       5 * time.Minute,
 	}))
 
 	candidateSvc := services.NewCandidateService(pool, rdb)
@@ -41,6 +41,7 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 	candidateHandler := handlers.NewCandidateHandler(candidateSvc)
 	otpHandler := handlers.NewOTPHandler(otpSvc, cfg.JWTSecret)
 	voteHandler := handlers.NewVoteHandler(voteSvc)
+	smsWebhookHandler := handlers.NewSMSWebhookHandler(voteSvc, smsSvc)
 	resultsHandler := handlers.NewResultsHandler(resultsSvc)
 	healthHandler := handlers.NewHealthHandler(pool, rdb)
 	adminHandler := adminhandler.NewAdminHandler(cfg.AdminJWTSecret)
@@ -59,6 +60,12 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 		api.GET("/candidates/:id", candidateHandler.GetByID)
 		api.GET("/results", resultsHandler.GetResults)
 		api.POST("/vote", middleware.RequireOTPToken(cfg.JWTSecret), voteHandler.Cast)
+
+		webhookGroup := api.Group("/webhooks")
+		// webhookGroup.Use(middleware.WebhookSecret(cfg.WebhookSecret))
+		{
+			webhookGroup.POST("/sms/inbound", smsWebhookHandler.InboundVote)
+		}
 
 		adminGroup := api.Group("/admin")
 		adminGroup.POST("/login", middleware.RateLimit(rdb, "admin_login", 5, time.Minute), adminHandler.Login)
