@@ -45,8 +45,11 @@ func (s *ResultsService) GetResults(ctx context.Context) (*models.Results, error
 	results := &models.Results{
 		Tally:      tally,
 		TotalVotes: total,
+		IsTie:      false,
+		Leaders:    leadersFromTally(tally),
 		CachedAt:   time.Now(),
 	}
+	results.IsTie = len(results.Leaders) > 1
 
 	if data, err := json.Marshal(results); err == nil {
 		if err := cache.SetResultsCache(ctx, s.rdb, data); err != nil {
@@ -55,4 +58,22 @@ func (s *ResultsService) GetResults(ctx context.Context) (*models.Results, error
 	}
 
 	return results, nil
+}
+
+func leadersFromTally(tally []models.TallyRow) []models.TallyRow {
+	if len(tally) == 0 {
+		return nil
+	}
+
+	topVoteCount := tally[0].VoteCount
+	leaders := make([]models.TallyRow, 0, len(tally))
+
+	for _, row := range tally {
+		if row.VoteCount != topVoteCount {
+			break
+		}
+		leaders = append(leaders, row)
+	}
+
+	return leaders
 }

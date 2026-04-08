@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getResults } from "@/lib/api/api";
-import { Results, TallyRow } from "@/types/types";
+import { Results } from "@/types/types";
 
 import ResultsChart from "./ResultsChart";
 
@@ -47,7 +47,12 @@ export default function ResultsView() {
     return () => window.clearInterval(id);
   }, [fetchResults]);
 
-  const leader: TallyRow | null = results?.tally?.[0] ?? null;
+  const leaders = results?.leaders ?? [];
+  const hasTie = results?.is_tie ?? false;
+  const leadSummary = hasTie ? leaders.map((leader) => leader.name).join(", ") : leaders[0]?.name ?? null;
+  const leadPartySummary = hasTie
+    ? `${leaders.length} candidates tied`
+    : leaders[0]?.party?.toLocaleUpperCase() ?? null;
 
   return (
     <div>
@@ -92,11 +97,15 @@ export default function ResultsView() {
               <p className="text-3xl font-bold text-brand-600">{results.tally.length}</p>
               <p className="mt-1 text-sm text-gray-400">Candidates</p>
             </div>
-            {leader && (
+            {leadSummary && (
               <div className="card col-span-2 text-center sm:col-span-1">
-                <p className="truncate text-lg font-bold text-gray-900">{leader.name}</p>
-                <p className="text-sm font-medium text-brand-500">{leader.party.toLocaleUpperCase()}</p>
-                <p className="mt-1 text-xs text-gray-400">Currently leading</p>
+                <p className="text-lg font-bold text-gray-900">{leadSummary}</p>
+                {leadPartySummary && (
+                  <p className="text-sm font-medium text-brand-500">{leadPartySummary}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-400">
+                  {hasTie ? "Currently tied for first" : "Currently leading"}
+                </p>
               </div>
             )}
           </div>

@@ -206,7 +206,7 @@ export default function Steps() {
               <option value="">Select a candidate...</option>
               {candidates.map((candidate) => (
                 <option key={candidate.id} value={candidate.code}>
-                  {candidate.code} — {candidate.name} ({candidate.party})
+                  {candidate.code} — {candidate.name} ({candidate.party.toLocaleUpperCase()})
                 </option>
               ))}
             </select>

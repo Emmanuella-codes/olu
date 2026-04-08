@@ -23,6 +23,8 @@ export interface TallyRow {
 export interface Results {
     tally: TallyRow[];
     total_votes: number;
+    is_tie: boolean;
+    leaders: TallyRow[];
     cached_at: string;
 }
 
