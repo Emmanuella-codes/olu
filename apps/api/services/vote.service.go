@@ -38,8 +38,8 @@ type CastVoteInput struct {
 }
 
 type CastVoteResult struct {
-	ConfirmationID string
-	CandidateName  string
+	ConfirmationID string `json:"confirmation_id"`
+	CandidateName  string `json:"candidate_name"`
 }
 
 func (s *VoteService) CastVote(ctx context.Context, input CastVoteInput) (*CastVoteResult, error) {
