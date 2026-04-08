@@ -8,11 +8,13 @@ import (
 )
 
 type Handler struct {
-	store *store.Store
+	store         *store.Store
+	webhookSecret string
+	apiBaseURL    string
 }
 
-func New(s *store.Store) *Handler {
-	return &Handler{store: s}
+func New(s *store.Store, webhookSecret, apiBaseURL string) *Handler {
+	return &Handler{store: s, webhookSecret: webhookSecret, apiBaseURL: apiBaseURL}
 }
 
 type mockSMSRequest struct {

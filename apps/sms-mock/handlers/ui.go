@@ -48,6 +48,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn.primary:hover{background:#007347}
 .msgs{display:flex;flex-direction:column;gap:8px}
 .msg{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;border-left-width:4px}
+.msg.inbound{border-left-color:#7c3aed}
 .msg.otp{border-left-color:#008751}
 .msg.confirm{border-left-color:#1d4ed8}
 .msg.reject{border-left-color:#dc2626}
@@ -59,6 +60,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .msg-body{font-size:13px;color:#374151;line-height:1.5;background:#f9fafb;border-radius:6px;padding:8px 10px}
 .otp-code{font-family:monospace;font-size:16px;font-weight:700;color:#008751;background:#ecfdf5;padding:2px 8px;border-radius:4px;border:1px solid #6ee7b7}
 .tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-left:8px}
+.tag.inbound{background:#f3e8ff;color:#6d28d9}
 .tag.otp{background:#ecfdf5;color:#065f46}
 .tag.confirm{background:#eff6ff;color:#1e40af}
 .tag.reject{background:#fef2f2;color:#991b1b}
@@ -118,7 +120,7 @@ async function load(){
  
 function render(){
   const q = document.getElementById('search').value.toLowerCase();
-  const filtered = q ? all.filter(m => m.to.includes(q) || m.body.toLowerCase().includes(q)) : all;
+  const filtered = q ? all.filter(m => m.to.includes(q) || m.from.includes(q) || m.body.toLowerCase().includes(q)) : all;
   const el = document.getElementById('msgs');
   if(!filtered.length){
     el.innerHTML = '<div class="empty">No messages yet. Send an OTP request to see it here.</div>';
