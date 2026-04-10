@@ -12,7 +12,7 @@ export class ApiRequestError extends Error {
     }
 }
 
-async function handleResponse<T>(path: string, options?: RequestInit): Promise<T> {
+export async function handleResponse<T>(path: string, options?: RequestInit): Promise<T> {
     let res: Response;
     try {
         res = await fetch(`${API_URL}/api/v1${path}`, {
