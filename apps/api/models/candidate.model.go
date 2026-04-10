@@ -39,6 +39,6 @@ type Candidate struct {
 	Bio          string         `json:"bio"`
 	Achievements string         `json:"achievements"`
 	PhotoURL     *string        `json:"photo_url"`
-	IsActive     bool
-	CreatedAt    time.Time
+	IsActive     bool           `json:"is_active"`
+	CreatedAt    time.Time      `json:"created_at"`
 }

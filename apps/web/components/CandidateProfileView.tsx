@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { splitAchievements } from "@/lib/format/achievements";
 import { Candidate } from "@/types/types";
 
 interface Props {
@@ -7,10 +8,7 @@ interface Props {
 }
 
 export default function CandidateProfileView({ candidate }: Props) {
-  const achievements = candidate?.achievements
-    ?.split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
+  const achievements = splitAchievements(candidate.achievements);
 
   return (
     <div className="mx-auto max-w-2xl">

@@ -68,6 +68,15 @@ function adminAuthHeaders(token: string) {
   return { Authorization: `Bearer ${token}` };
 }
 
+function requireAdminToken(token?: string): string {
+  const resolvedToken = token ?? getAdminToken();
+  if (!resolvedToken) {
+    throw new AdminApiError(401, "Admin token is missing. Please sign in again.");
+  }
+
+  return resolvedToken;
+}
+
 export async function adminLogin(email: string, password: string): Promise<{ token: string; expires_in: number }> {
   return adminRequest<{ token: string; expires_in: number }>("/login", {
     method: "POST",
@@ -76,30 +85,41 @@ export async function adminLogin(email: string, password: string): Promise<{ tok
 }
 
 export async function createAdmin(
-  token: string,
-  payload: { email: string; password: string }
+  payload: { email: string; password: string },
+  token?: string
 ): Promise<{ id: string; email: string }> {
+  const adminToken = requireAdminToken(token);
   const response = await adminRequest<{ data: { id: string; email: string } }>("/create", {
     method: "POST",
-    headers: adminAuthHeaders(token),
+    headers: adminAuthHeaders(adminToken),
     body: JSON.stringify(payload),
   });
 
   return response.data;
 }
 
-export async function getAdminCandidates(token: string): Promise<AdminCandidate[]> {
+export async function getAdminCandidate(id: string, token?: string): Promise<AdminCandidate> {
+  const adminToken = requireAdminToken(token);
+  const response = await adminRequest<{ data: AdminCandidate }>(`/candidates/${id}`, {
+    headers: adminAuthHeaders(adminToken),
+  });
+  return response.data;
+}
+
+export async function getAdminCandidates(token?: string): Promise<AdminCandidate[]> {
+  const adminToken = requireAdminToken(token);
   const response = await adminRequest<{ data: AdminCandidate[]; count: number }>("/candidates", {
-    headers: adminAuthHeaders(token),
+    headers: adminAuthHeaders(adminToken),
   });
 
   return response.data;
 }
 
-export async function createCandidate(token: string, payload: CreateCandidatePayload): Promise<AdminCandidate> {
+export async function createCandidate(payload: CreateCandidatePayload, token?: string): Promise<AdminCandidate> {
+  const adminToken = requireAdminToken(token);
   const response = await adminRequest<{ data: AdminCandidate }>("/candidates", {
     method: "POST",
-    headers: adminAuthHeaders(token),
+    headers: adminAuthHeaders(adminToken),
     body: JSON.stringify(payload),
   });
 
@@ -107,31 +127,34 @@ export async function createCandidate(token: string, payload: CreateCandidatePay
 }
 
 export async function updateCandidate(
-  token: string,
   candidateId: string,
-  payload: UpdateCandidatePayload
+  payload: UpdateCandidatePayload,
+  token?: string
 ): Promise<AdminCandidate> {
+  const adminToken = requireAdminToken(token);
   const response = await adminRequest<{ data: AdminCandidate }>(`/candidates/${candidateId}`, {
     method: "PUT",
-    headers: adminAuthHeaders(token),
+    headers: adminAuthHeaders(adminToken),
     body: JSON.stringify(payload),
   });
 
   return response.data;
 }
 
-export async function deactivateCandidate(token: string, candidateId: string): Promise<string> {
+export async function deactivateCandidate(candidateId: string, token?: string): Promise<string> {
+  const adminToken = requireAdminToken(token);
   const response = await adminRequest<{ data: string }>(`/candidates/${candidateId}`, {
     method: "DELETE",
-    headers: adminAuthHeaders(token),
+    headers: adminAuthHeaders(adminToken),
   });
 
   return response.data;
 }
 
-export async function getAdminStats(token: string): Promise<AdminStats> {
+export async function getAdminStats(token?: string): Promise<AdminStats> {
+  const adminToken = requireAdminToken(token);
   const response = await adminRequest<{ data: AdminStats }>("/stats", {
-    headers: adminAuthHeaders(token),
+    headers: adminAuthHeaders(adminToken),
   });
 
   return response.data;

@@ -75,6 +75,20 @@ export async function castVote(
     return res.data;
 }
 
+// health
+
+export async function getHealth(): Promise<{ status: string; error?: string }> {
+    let res: Response;
+    try {
+        res = await fetch(`${API_URL}/health`);
+    } catch {
+        return { status: "degraded", error: "unreachable" };
+    }
+    const json = await res.json();
+    if (!res.ok) return { status: "degraded", error: json.error };
+    return json;
+}
+
 // results
 
 export async function getResults(): Promise<Results> {
