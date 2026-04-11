@@ -53,7 +53,7 @@ func LoadForMigration() (*Config, error) {
 }
 
 func loadBase() (*Config, error) {
-	_ = godotenv.Load()
+	_ = godotenv.Load(".env", "apps/api/.env")
 
 	smsTimeoutSec, err := getEnvInt("SMS_TIMEOUT", 5)
 	if err != nil {

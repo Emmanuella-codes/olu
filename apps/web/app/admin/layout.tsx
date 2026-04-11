@@ -1,24 +1,41 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
 import AdminHeader from "@/components/admin/Header";
 import { clearAdminToken, getAdminToken } from "@/lib/admin-api/api";
+
+function subscribeToHydration() {
+  return () => undefined;
+}
+
+function getClientHydrationSnapshot() {
+  return true;
+}
+
+function getServerHydrationSnapshot() {
+  return false;
+}
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot,
+  );
 
   const isLoginPage = pathname === "/admin/login";
+  const isAuthenticated = isHydrated ? Boolean(getAdminToken()) : false;
 
-  // Auth guard — redirect unauthenticated users to login
+  // Auth guard runs after hydration because the token is stored in sessionStorage.
   useEffect(() => {
-    if (!isLoginPage && !getAdminToken()) {
+    if (isHydrated && !isLoginPage && !isAuthenticated) {
       router.replace("/admin/login");
     }
-  }, [isLoginPage, router]);
+  }, [isHydrated, isAuthenticated, isLoginPage, router]);
 
   // Login page: no sidebar, plain background
   if (isLoginPage) {
@@ -26,8 +43,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   // Block render until token is confirmed (prevents flash of sidebar for unauthenticated users)
-  if (!getAdminToken()) {
-    return null;
+  if (!isHydrated || !isAuthenticated) {
+    return <div className="fixed inset-0 z-50 bg-slate-950" />;
   }
 
   return (

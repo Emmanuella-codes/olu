@@ -65,6 +65,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tag.confirm{background:#eff6ff;color:#1e40af}
 .tag.reject{background:#fef2f2;color:#991b1b}
 .tag.generic{background:#f3f4f6;color:#6b7280}
+.tag.source{border:1px solid transparent;text-transform:uppercase}
+.tag.source.web{background:#e0f2fe;color:#075985;border-color:#bae6fd}
+.tag.source.sms{background:#fffbeb;color:#92400e;border-color:#fde68a}
 .empty{text-align:center;padding:48px;color:#9ca3af;background:#fff;border:1px solid #e5e7eb;border-radius:10px}
 .copy-btn{font-size:11px;padding:1px 8px;border:1px solid #d1d5db;border-radius:4px;background:#fff;cursor:pointer;color:#6b7280;margin-left:8px}
 .copy-btn:hover{background:#f3f4f6}
@@ -133,7 +136,7 @@ function render(){
       : escHtml(m.body);
     return '<div class="msg '+m.channel+'">'+
       '<div class="msg-header">'+
-        '<span class="msg-phone">'+escHtml(m.to)+'<span class="tag '+m.channel+'">'+m.channel+'</span></span>'+
+        '<span class="msg-phone">'+escHtml(m.to)+'<span class="tag '+m.channel+'">'+m.channel+'</span>'+sourceTag(m.source)+'</span>'+
         '<span class="msg-time">'+t+'</span>'+
       '</div>'+
       '<div class="msg-from">From: '+escHtml(m.from)+'</div>'+
@@ -144,6 +147,11 @@ function render(){
  
 function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function sourceTag(source){
+  if(source !== 'web' && source !== 'sms') return '';
+  return '<span class="tag source '+source+'">'+source+'</span>';
 }
 
 function highlightOTP(body, otp){

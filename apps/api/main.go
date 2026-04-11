@@ -75,6 +75,10 @@ func main() {
 	} else {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
+	// log.Info().
+	// 	Str("webhook_secret", secretFingerprint(cfg.WebhookSecret)).
+	// 	Str("sms_base_url", cfg.SMSBaseURL).
+	// 	Msg("api config loaded")
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
@@ -118,3 +122,12 @@ func main() {
 	server.RunServer(ctx, cfg, pool, rdb, smsSvc)
 	workerWG.Wait()
 }
+
+// debug webhook secret
+// func secretFingerprint(secret string) string {
+// 	if secret == "" {
+// 		return "unset"
+// 	}
+// 	sum := sha256.Sum256([]byte(secret))
+// 	return fmt.Sprintf("len=%d sha256=%s", len(secret), hex.EncodeToString(sum[:])[:12])
+// }
