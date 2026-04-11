@@ -62,7 +62,7 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 		api.POST("/vote", middleware.RequireOTPToken(cfg.JWTSecret), voteHandler.Cast)
 
 		webhookGroup := api.Group("/webhooks")
-		// webhookGroup.Use(middleware.WebhookSecret(cfg.WebhookSecret))
+		webhookGroup.Use(middleware.WebhookSecret(cfg.WebhookSecret))
 		{
 			webhookGroup.POST("/sms/inbound", smsWebhookHandler.InboundVote)
 		}
@@ -75,6 +75,7 @@ func RunServer(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool, rdb 
 			adminGroup.POST("/create", adminHandler.CreateAdmin)
 			adminGroup.GET("/candidates", adminHandler.AllCandidates)
 			adminGroup.POST("/candidates", adminHandler.CreateCandidate)
+			adminGroup.GET("/candidates/:id", adminHandler.GetCandidate)
 			adminGroup.PUT("/candidates/:id", adminHandler.UpdateCandidate)
 			adminGroup.DELETE("/candidates/:id", adminHandler.DeactivateCandidate)
 			adminGroup.GET("/stats", adminHandler.Stats)

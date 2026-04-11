@@ -1,15 +1,13 @@
 import { Candidate } from "@/types/types";
 import Link from "next/link";
+import { splitAchievements } from "@/lib/format/achievements";
 
 interface Props {
     candidate: Candidate
 }
 
 export default function CandidateCard({ candidate }: Props) {
-    const firstAchievement = candidate.achievements
-        .split("\n")
-        .map((a) => a.trim())
-        .find(Boolean);
+    const firstAchievement = splitAchievements(candidate.achievements)[0];
 
     return (
         <div className="card flex flex-col hover:border-brand-300 hover:shadow-md transition-all duration-150">

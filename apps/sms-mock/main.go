@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	_ = godotenv.Load()
+	_ = godotenv.Load(".env", "apps/sms-mock/.env")
 
 	gin.SetMode(gin.ReleaseMode)
 
@@ -80,6 +80,8 @@ func main() {
 		}
 	}()
 	fmt.Printf("\n  OLU SMS mock running\n")
+	// fmt.Printf("  Webhook secret fingerprint → %s\n", secretFingerprint(webhookSecret))
+	fmt.Printf("  API base → %s\n", apiBaseURL)
 	fmt.Printf("  UI       → http://localhost:%s\n", port)
 	fmt.Printf("  Send     → POST http://localhost:%s/api/sms/send\n", port)
 	fmt.Printf("  Inbound  → POST http://localhost:%s/api/sms/inbound\n", port)
@@ -92,3 +94,11 @@ func main() {
 		os.Exit(1)
 	}
 }
+
+// func secretFingerprint(secret string) string {
+// 	if secret == "" {
+// 		return "unset"
+// 	}
+// 	sum := sha256.Sum256([]byte(secret))
+// 	return fmt.Sprintf("len=%d sha256=%s", len(secret), hex.EncodeToString(sum[:])[:12])
+// }

@@ -133,6 +133,21 @@ func (r *mgRepository) GetAllCandidates(ctx context.Context) ([]models.Candidate
 	return out, rows.Err()
 }
 
+func (r *mgRepository) GetCandidateByID(ctx context.Context, id uuid.UUID) (*models.Candidate, error) {
+	var out models.Candidate
+	err := r.db.QueryRow(ctx, `
+		SELECT id, code, name, party, bio, achievements, photo_url, is_active, created_at
+		FROM candidates WHERE id = $1
+	`, id).Scan(&out.ID, &out.Code, &out.Name, &out.Party, &out.Bio, &out.Achievements, &out.PhotoURL, &out.IsActive, &out.CreatedAt)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (r *mgRepository) GetAdminByEmail(ctx context.Context, email string) (*models.Admin, error) {
 	var admin models.Admin
 	err := r.db.QueryRow(ctx, `

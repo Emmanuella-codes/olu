@@ -7,6 +7,7 @@ import (
 )
 
 type Channel string
+type SourceChannel string
 
 const (
 	ChannelInbound Channel = "inbound"
@@ -14,6 +15,9 @@ const (
 	ChannelConfirm Channel = "confirm"
 	ChannelReject  Channel = "reject"
 	ChannelGeneric Channel = "generic"
+
+	SourceChannelWeb SourceChannel = "web"
+	SourceChannelSMS SourceChannel = "sms"
 )
 
 type Message struct {
@@ -22,6 +26,7 @@ type Message struct {
 	From    string    `json:"from"`
 	Body    string    `json:"body"`
 	Channel Channel   `json:"channel"`
+	Source  string    `json:"source"`
 	OTPCode string    `json:"otp_code,omitempty"`
 	SentAt  time.Time `json:"sent_at"`
 }
@@ -39,14 +44,14 @@ func New() *Store {
 }
 
 func (s *Store) Add(to, from, body string) Message {
-	return s.addMessage(to, from, body, detectChannel(body), extractOTP(body))
+	return s.addMessage(to, from, body, detectChannel(body), s.detectSourceChannel(to), extractOTP(body))
 }
 
 func (s *Store) AddInbound(from, body string) Message {
-	return s.addMessage("OLU", from, body, ChannelInbound, "")
+	return s.addMessage("OLU", from, body, ChannelInbound, SourceChannelSMS, "")
 }
 
-func (s *Store) addMessage(to, from, body string, channel Channel, otpCode string) Message {
+func (s *Store) addMessage(to, from, body string, channel Channel, source SourceChannel, otpCode string) Message {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -57,6 +62,7 @@ func (s *Store) addMessage(to, from, body string, channel Channel, otpCode strin
 		From:    from,
 		Body:    body,
 		Channel: channel,
+		Source:  string(source),
 		OTPCode: otpCode,
 		SentAt:  time.Now(),
 	}
@@ -66,6 +72,24 @@ func (s *Store) addMessage(to, from, body string, channel Channel, otpCode strin
 	}
 	return msg
 }
+
+func (s *Store) detectSourceChannel(phone string) SourceChannel {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for i := len(s.messages) - 1; i >= 0; i-- {
+		msg := s.messages[i]
+		if matchesPhone(msg.From, phone) && msg.Channel == ChannelInbound {
+			return SourceChannelSMS
+		}
+		if matchesPhone(msg.To, phone) && msg.Channel == ChannelOTP {
+			return SourceChannelWeb
+		}
+	}
+
+	return SourceChannelWeb
+}
+
 func (s *Store) All() []Message {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

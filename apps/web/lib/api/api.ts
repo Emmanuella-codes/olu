@@ -12,7 +12,7 @@ export class ApiRequestError extends Error {
     }
 }
 
-async function handleResponse<T>(path: string, options?: RequestInit): Promise<T> {
+export async function handleResponse<T>(path: string, options?: RequestInit): Promise<T> {
     let res: Response;
     try {
         res = await fetch(`${API_URL}/api/v1${path}`, {
@@ -73,6 +73,20 @@ export async function castVote(
         body: JSON.stringify({ candidate_code: candidateCode }),
     });
     return res.data;
+}
+
+// health
+
+export async function getHealth(): Promise<{ status: string; error?: string }> {
+    let res: Response;
+    try {
+        res = await fetch(`${API_URL}/health`);
+    } catch {
+        return { status: "degraded", error: "unreachable" };
+    }
+    const json = await res.json();
+    if (!res.ok) return { status: "degraded", error: json.error };
+    return json;
 }
 
 // results
