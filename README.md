@@ -49,12 +49,13 @@ GET    /api/v1/candidates/:id       — candidate detail
 GET    /api/v1/results              — live vote tally (60s cache)
 GET    /health                      — health check (pings DB + Redis)
 
-POST   /api/v1/admin/login          — admin login (rate-limited: 5 req/min)
-GET    /api/v1/admin/candidates     — all candidates including inactive
-POST   /api/v1/admin/candidates     — create candidate
-PATCH  /api/v1/admin/candidates/:id — update candidate
-DELETE /api/v1/admin/candidates/:id — deactivate candidate
-GET    /api/v1/admin/stats          — vote stats breakdown
+POST   /api/v1/admin/login            — admin login (rate-limited: 5 req/min)
+GET    /api/v1/admin/candidates       — all candidates including inactive
+POST   /api/v1/admin/candidates       — create candidate
+GET    /api/v1/admin/candiidates/:id  - get candidate
+PUT    /api/v1/admin/candidates/:id   — update candidate
+DELETE /api/v1/admin/candidates/:id   — deactivate candidate
+GET    /api/v1/admin/stats            — vote stats breakdown
 ```
 
 ## Running Locally
